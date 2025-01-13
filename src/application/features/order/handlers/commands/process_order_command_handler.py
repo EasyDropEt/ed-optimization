@@ -1,3 +1,4 @@
+from ed_domain_model.queues.order.order_model import OrderModel
 from rmediator.decorators import request_handler
 from rmediator.types import RequestHandler
 
@@ -9,20 +10,18 @@ from src.application.contracts.infrastructure.persistence.abc_unit_of_work impor
     ABCUnitOfWork,
 )
 from src.application.features.order.requests.commands import ProcessOrderCommand
-from src.common.exception_helpers import ApplicationException, Exceptions
 from src.common.logging_helpers import get_logger
-from src.common.typing.config import TestMessage
 
 LOG = get_logger()
 
 
 @request_handler(ProcessOrderCommand, BaseResponse[None])
 class ProcessOrderCommandHandler(RequestHandler):
-    def __init__(self, uow: ABCUnitOfWork, subscriber: ABCSubscriber[TestMessage]):
+    def __init__(self, uow: ABCUnitOfWork, subscriber: ABCSubscriber[OrderModel]):
         self._uow = uow
         subscriber.add_callback_function(self.listener_callback)
 
     async def handle(self, request: ProcessOrderCommand) -> BaseResponse[None]: ...
 
-    def listener_callback(self, message: TestMessage) -> None:
+    def listener_callback(self, message: OrderModel) -> None:
         print(message)

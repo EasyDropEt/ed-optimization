@@ -1,6 +1,6 @@
-import json
 from typing import Generic, TypeVar
 
+import jsons
 from pika import ConnectionParameters, URLParameters, spec
 from pika.adapters import BlockingConnection
 from pika.adapters.blocking_connection import BlockingChannel
@@ -60,13 +60,13 @@ class RabbitMQSubscriber(Generic[TMessageSchema], ABCSubscriber[TMessageSchema])
         body: bytes,
     ) -> None:
         try:
-            message: TMessageSchema = json.loads(body.decode("utf-8"))
+            message: TMessageSchema = jsons.loads(body.decode("utf-8"))
 
             for fn in self._callback_functions:
                 fn(message)
 
-        except json.JSONDecodeError as e:
-            LOG.error(f"Failed to decode message: {e}")
+        except jsons.DeserializationError as e:
+            LOG.error(f"Failed to deserialize message: {e}")
 
         except KeyError as e:
             LOG.error(f"Missing key in message: {e}")

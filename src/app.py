@@ -1,9 +1,10 @@
+from ed_domain_model.queues.order.order_model import OrderModel
+
 from src.application.features.order.handlers.commands.process_order_command_handler import (
     ProcessOrderCommandHandler,
 )
 from src.common.generic_helpers import get_config
 from src.common.logging_helpers import get_logger
-from src.common.typing.config import TestMessage
 from src.infrastructure.persistence.db_client import DbClient
 from src.infrastructure.persistence.unit_of_work import UnitOfWork
 from src.infrastructure.rabbitmq.subscriber import RabbitMQSubscriber
@@ -17,7 +18,7 @@ class App:
         db_client = DbClient(config["mongo_db_connection_string"], config["db_name"])
         uow = UnitOfWork(db_client)
 
-        self._subscriber = RabbitMQSubscriber[TestMessage](
+        self._subscriber = RabbitMQSubscriber[OrderModel](
             config["rabbitmq_url"],
             config["rabbitmq_queue"],
         )
