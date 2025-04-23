@@ -17,7 +17,10 @@ psycopg2 = "^2.9.10"
 python-dotenv = "^1.0.1"
 pymongo = "^4.10.1"
 jsons = "^1.6.3"
-ed-domain = "^0.1.14"
+ed-infrastructure = "^0.1.2"
+ortools = "^9.12.4544"
+ed-domain = "^0.2.9"
+haversine = "^2.9.0"
 
 
 [tool.poetry.group.test.dependencies]
@@ -29,6 +32,9 @@ pytest = "^8.3.3"
 isort = "^5.13.2"
 black = "^24.10.0"
 ruff = "^0.8.2"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
 
 [build-system]
 requires = ["setuptools>=46.4.0", "wheel"]

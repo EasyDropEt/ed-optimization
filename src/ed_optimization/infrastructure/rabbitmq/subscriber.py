@@ -6,9 +6,7 @@ from pika.adapters import BlockingConnection
 from pika.adapters.blocking_connection import BlockingChannel
 
 from ed_optimization.application.contracts.infrastructure.message_queue.abc_subscriber import (
-    ABCSubscriber,
-    CallbackFunction,
-)
+    ABCSubscriber, CallbackFunction)
 from ed_optimization.common.logging_helpers import get_logger
 
 LOG = get_logger()
@@ -34,7 +32,7 @@ class RabbitMQSubscriber(Generic[TMessageSchema], ABCSubscriber[TMessageSchema])
         self._channel.queue_declare(queue=self._queue, durable=True)
 
         self._channel.basic_consume(
-            queue=self._queue, on_message_callback=self._callback, auto_ack=True
+            queue=self._queue, on_message_callback=self._callback, auto_ack=False
         )
         self._channel.start_consuming()
 

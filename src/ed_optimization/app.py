@@ -1,29 +1,18 @@
-from ed_domain.queues.order.order_model import OrderModel
+from ed_domain.common.logging import get_logger
 
-from ed_optimization.application.features.order.handlers.commands.process_order_command_handler import \
-    ProcessOrderCommandHandler
-from ed_optimization.common.generic_helpers import get_config
-from ed_optimization.common.logging_helpers import get_logger
-from ed_optimization.infrastructure.persistence.db_client import DbClient
-from ed_optimization.infrastructure.persistence.unit_of_work import UnitOfWork
-from ed_optimization.infrastructure.rabbitmq.subscriber import \
-    RabbitMQSubscriber
+from ed_optimization.webapi.dependency_setup import get_manual_dependency_setup
 
 LOG = get_logger()
 
 
 class App:
     def __init__(self) -> None:
-        config = get_config()
-        db_client = DbClient(
-            config["mongo_db_connection_string"], config["db_name"])
-        uow = UnitOfWork(db_client)
+        self._setup()
 
-        self._subscriber = RabbitMQSubscriber[OrderModel](
-            config["rabbitmq_url"],
-            config["rabbitmq_queue"],
-        )
-        self._main_handler = ProcessOrderCommandHandler(uow, self._subscriber)
+    def _setup(self) -> None:
+        di = get_manual_dependency_setup()
+        self._subscriber = di["subscriber"]
+        self._producer = di["producer"]
 
     def start(self) -> None:
         self._subscriber.start()
