@@ -18,4 +18,5 @@ def get_config() -> Config:
         "db_name": os.getenv("DB_NAME") or "",
         "rabbitmq_url": os.getenv("RABBITMQ_URL") or "",
         "rabbitmq_queue": os.getenv("RABBITMQ_QUEUE") or "",
+        "core_api": os.getenv("CORE_API") or "",
     }

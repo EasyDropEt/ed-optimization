@@ -6,6 +6,7 @@ class Config(TypedDict):
     db_name: str
     rabbitmq_url: str
     rabbitmq_queue: str
+    core_api: str
 
 
 class TestMessage(TypedDict):

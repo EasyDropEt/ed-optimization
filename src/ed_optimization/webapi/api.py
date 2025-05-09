@@ -4,37 +4,32 @@ from starlette.responses import JSONResponse
 
 from ed_optimization.common.exception_helpers import ApplicationException
 from ed_optimization.common.logging_helpers import get_logger
-from ed_optimization.common.singleton_helpers import SingletonMeta
 from ed_optimization.webapi.common.helpers import GenericResponse
-from ed_optimization.webapi.controllers import some_feature_controller
+from ed_optimization.webapi.controllers import order_controller
 
 LOG = get_logger()
 
 
-class API(metaclass=SingletonMeta):
-    def __init__(self) -> None:
-        self._app = FastAPI()
-
-    @property
-    def app(self):
-        return self._app
+class API(FastAPI):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     def start(self) -> None:
         LOG.info("Starting api...")
         self._include_routers()
         self._contain_exceptions()
 
-        uvicorn.run(self._app, host="0.0.0.0", port=8000)
+        uvicorn.run(self, host="0.0.0.0", port=8000)
 
     def stop(self) -> None:
         LOG.info("API does not need to be stopped...")
 
     def _include_routers(self) -> None:
         LOG.info("Including routers...")
-        self._app.include_router(some_feature_controller.router)
+        self.include_router(order_controller.router)
 
     def _contain_exceptions(self) -> None:
-        @self._app.exception_handler(ApplicationException)
+        @self.exception_handler(ApplicationException)
         async def application_exception_handler(
             request: Request, exception: ApplicationException
         ) -> JSONResponse:

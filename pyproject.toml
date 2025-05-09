@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ed-optimization"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["ffekirnew <ffekirnew0808@gmail.com>"]
 license = "MIT"
@@ -17,7 +17,12 @@ psycopg2 = "^2.9.10"
 python-dotenv = "^1.0.1"
 pymongo = "^4.10.1"
 jsons = "^1.6.3"
-ed-domain = "^0.1.14"
+ed-domain = "^0.2.20"
+ed-infrastructure = "^0.1.7"
+asyncio = "^3.4.3"
+ed-core = "0.1.23"
+requests = "^2.32.3"
+twine = "^6.1.0"
 
 
 [tool.poetry.group.test.dependencies]
