@@ -13,8 +13,8 @@ from ed_optimization.common.logging_helpers import get_logger
 from ed_optimization.webapi.dependency_setup import mediator
 
 config = get_config()
-router = RabbitRouter(config["rabbitmq_url"])
-queue = RabbitQueue(name=config["rabbitmq_queue"], durable=True)
+router = RabbitRouter(config["rabbitmq"]["url"])
+queue = RabbitQueue(name=config["rabbitmq"]["queue"], durable=True)
 
 LOG = get_logger()
 

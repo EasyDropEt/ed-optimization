@@ -24,8 +24,8 @@ from ed_optimization.infrastructure.cache.in_memory_cache import InMemoryCache
 
 def get_db_client(config: Annotated[Config, Depends(get_config)]) -> DbClient:
     return DbClient(
-        config["mongo_db_connection_string"],
-        config["db_name"],
+        config["db"]["connection_string"],
+        config["db"]["db_name"],
     )
 
 
@@ -39,8 +39,8 @@ def get_uow(db_client: Annotated[DbClient, Depends(get_db_client)]) -> ABCUnitOf
 
 def get_producer(config: Annotated[Config, Depends(get_config)]) -> ABCProducer:
     producer = RabbitMQProducer[TestMessage](
-        config["rabbitmq_url"],
-        config["rabbitmq_queue"],
+        config["rabbitmq"]["url"],
+        config["rabbitmq"]["queue"],
     )
     producer.start()
 

@@ -14,9 +14,28 @@ def get_config() -> Config:
     load_dotenv()
 
     return {
-        "mongo_db_connection_string": os.getenv("CONNECTION_STRING") or "",
-        "db_name": os.getenv("DB_NAME") or "",
-        "rabbitmq_url": os.getenv("RABBITMQ_URL") or "",
-        "rabbitmq_queue": os.getenv("RABBITMQ_QUEUE") or "",
-        "core_api": os.getenv("CORE_API") or "",
+        "db": {
+            "connection_string": _get_env_variable("CONNECTION_STRING"),
+            "db_name": _get_env_variable("DB_NAME"),
+        },
+        "rabbitmq": {
+            "url": _get_env_variable("RABBITMQ_URL"),
+            "queue": _get_env_variable("RABBITMQ_QUEUE"),
+        },
+        "core_api": _get_env_variable("CORE_API"),
     }
+
+
+def _get_env_variable(name: str) -> str:
+    value = os.getenv(name)
+    if value is None:
+        raise ValueError(f"Environment variable '{name}' is not set.")
+
+    if not isinstance(value, str):
+        raise TypeError(f"Environment variable '{name}' must be a string.")
+
+    value = value.strip()
+    if not value:
+        raise ValueError(f"Environment variable '{name}' cannot be empty.")
+
+    return value
