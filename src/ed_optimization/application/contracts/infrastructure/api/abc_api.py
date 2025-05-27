@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from ed_core.documentation.abc_core_api_client import ABCCoreApiClient
+from ed_core.documentation.api.abc_core_api_client import ABCCoreApiClient
 
 
 class ABCApi(metaclass=ABCMeta):

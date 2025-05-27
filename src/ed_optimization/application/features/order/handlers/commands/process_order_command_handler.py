@@ -1,7 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from math import asin, cos, radians, sin, sqrt
 
-from ed_domain.common.exceptions import ApplicationException, Exceptions
 from ed_domain.core.entities.delivery_job import WayPoint, WayPointType
 from ed_domain.core.repositories import ABCUnitOfWork
 from ed_domain.queues.common.abc_subscriber import ABCSubscriber

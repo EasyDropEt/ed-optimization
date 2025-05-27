@@ -5,7 +5,8 @@ from starlette.responses import JSONResponse
 from ed_optimization.common.exception_helpers import ApplicationException
 from ed_optimization.common.logging_helpers import get_logger
 from ed_optimization.webapi.common.helpers import GenericResponse
-from ed_optimization.webapi.controllers import order_controller
+from ed_optimization.webapi.controllers import (order_controller,
+                                                rabbitmq_controller)
 
 LOG = get_logger()
 
@@ -27,6 +28,7 @@ class API(FastAPI):
     def _include_routers(self) -> None:
         LOG.info("Including routers...")
         self.include_router(order_controller.router)
+        self.include_router(rabbitmq_controller.router)
 
     def _contain_exceptions(self) -> None:
         @self.exception_handler(ApplicationException)

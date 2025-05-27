@@ -2,11 +2,9 @@ from typing import Annotated
 
 from ed_domain.core.repositories.abc_unit_of_work import ABCUnitOfWork
 from ed_domain.queues.common.abc_producer import ABCProducer
-from ed_domain.queues.common.abc_subscriber import ABCSubscriber
 from ed_infrastructure.persistence.mongo_db.db_client import DbClient
 from ed_infrastructure.persistence.mongo_db.unit_of_work import UnitOfWork
 from ed_infrastructure.queues.rabbitmq.producer import RabbitMQProducer
-from ed_infrastructure.queues.rabbitmq.subscriber import RabbitMQSubscriber
 from fastapi import Depends
 from rmediator.mediator import Mediator
 
@@ -49,15 +47,6 @@ def get_producer(config: Annotated[Config, Depends(get_config)]) -> ABCProducer:
     return producer
 
 
-def get_subscriber(config: Annotated[Config, Depends(get_config)]) -> ABCSubscriber:
-    subscriber = RabbitMQSubscriber[TestMessage](
-        config["rabbitmq_url"],
-        config["rabbitmq_queue"],
-    )
-
-    return subscriber
-
-
 def get_api(config: Annotated[Config, Depends(get_config)]) -> ABCApi:
     return ApiHandler(config["core_api"])
 
@@ -65,7 +54,6 @@ def get_api(config: Annotated[Config, Depends(get_config)]) -> ABCApi:
 def mediator(
     uow: Annotated[ABCUnitOfWork, Depends(get_uow)],
     producer: Annotated[ABCProducer, Depends(get_producer)],
-    subscriber: Annotated[ABCSubscriber, Depends(get_subscriber)],
     cache: Annotated[ABCCache, Depends(get_cache)],
     api: Annotated[ABCApi, Depends(get_api)],
 ) -> Mediator:
@@ -74,7 +62,7 @@ def mediator(
     handlers = [
         (
             ProcessOrderCommand,
-            ProcessOrderCommandHandler(uow, subscriber, cache, api),
+            ProcessOrderCommandHandler(uow, producer, cache, api),
         )
     ]
     for command, handler in handlers:
