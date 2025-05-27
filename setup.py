@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="ed_optimization",
+    name="ed_optimization_service",
     author="Fikernew Birhanu",
     author_email="fikernew.birhanu.waju@gmail.com",
     description="EasyDrop auth model Package",
