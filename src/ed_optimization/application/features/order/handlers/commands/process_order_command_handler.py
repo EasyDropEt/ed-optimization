@@ -1,8 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from math import asin, cos, radians, sin, sqrt
 
-from ed_core.application.features.business.dtos import (CreateLocationDto,
-                                                        CreateOrderDto)
+from ed_domain.core.aggregate_roots.order import Order
 from ed_domain.core.aggregate_roots.waypoint import Waypoint, WaypointType
 from ed_domain.persistence.async_repositories import ABCAsyncUnitOfWork
 from rmediator.decorators import request_handler
@@ -16,6 +15,7 @@ from ed_optimization.application.contracts.infrastructure.cache.abc_cache import
     ABCCache
 from ed_optimization.application.contracts.infrastructure.message_queue.abc_rabbitmq_producers import \
     ABCRabbitMQProducers
+from ed_optimization.application.features.order.dtos import CreateOrderDto
 from ed_optimization.application.features.order.requests.commands import \
     ProcessOrderCommand
 from ed_optimization.common.logging_helpers import get_logger
@@ -32,7 +32,7 @@ class ProcessOrderCommandHandler(RequestHandler):
         self,
         uow: ABCAsyncUnitOfWork,
         rabbitmq: ABCRabbitMQProducers,
-        cache: ABCCache[list[CreateOrderDto]],
+        cache: ABCCache[list[Order]],
         api: ABCApi,
     ):
         self._cache_key = "pending_delivery_job"
@@ -42,7 +42,7 @@ class ProcessOrderCommandHandler(RequestHandler):
         self._rabbitmq = rabbitmq
 
     async def handle(self, request: ProcessOrderCommand) -> BaseResponse[None]:
-        self._process_order(request.model)
+        # self._process_order(request.model)
         return BaseResponse[None].success(
             message="Order processed successfully",
             data=None,
@@ -58,7 +58,7 @@ class ProcessOrderCommandHandler(RequestHandler):
             return
 
         oldest_order = pending_orders[0]
-        if datetime.now(UTC) - oldest_order["create_datetime"] > MAX_WAIT_TIME:
+        if datetime.now(UTC) - oldest_order.create_datetime > MAX_WAIT_TIME:
             LOG.info("Oldest order too old. Forcing batch flush.")
             self._flush_pending_orders(pending_orders + [message])
             return
@@ -79,15 +79,13 @@ class ProcessOrderCommandHandler(RequestHandler):
         else:
             self._save_pending_orders(pending_orders)
 
-    def _is_match(
-        self, order: CreateOrderDto, pending_orders: list[CreateOrderDto]
-    ) -> bool:
+    def _is_match(self, order: CreateOrderDto, pending_orders: list[Order]) -> bool:
         # Match if within time and distance threshold
         for existing in pending_orders:
             time_delta = abs(
                 (
-                    order["latest_time_of_delivery"]
-                    - existing["latest_time_of_delivery"]
+                    order["latest_time_of_delivery"] -
+                    existing.latest_time_of_delivery
                 ).total_seconds()
             )
 
@@ -138,12 +136,12 @@ class ProcessOrderCommandHandler(RequestHandler):
             self._cache.set(self._cache_key, [])  # clear cache
             LOG.info("Delivery job created and persisted (stub).")
 
-    def _get_pending_orders(self) -> list[CreateOrderDto]:
+    def _get_pending_orders(self) -> list[Order]:
         if pending := self._cache.get(self._cache_key):
             return pending
         return []
 
-    def _save_pending_orders(self, orders: list[CreateOrderDto]) -> None:
+    def _save_pending_orders(self, orders: list[Order]) -> None:
         self._cache.set(self._cache_key, orders)
         LOG.info(f"Saved {len(orders)} orders to pending cache.")
 

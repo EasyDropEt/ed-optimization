@@ -1,10 +1,11 @@
-from ed_domain.queues.ed_optimization.order_model import OrderModel
 from fastapi import APIRouter, Depends
 from rmediator.decorators.request_handler import Annotated
 from rmediator.mediator import Mediator
 
 from ed_optimization.application.common.responses.base_response import \
     BaseResponse
+from ed_optimization.application.features.order.dtos.create_order_dto import \
+    CreateOrderDto
 from ed_optimization.application.features.order.requests.commands.process_order_command import \
     ProcessOrderCommand
 from ed_optimization.common.logging_helpers import get_logger
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/orders", tags=["Order Feature"])
 @router.post("", response_model=GenericResponse[None])
 @rest_endpoint
 async def create_order(
-    model: OrderModel,
+    model: CreateOrderDto,
     mediator: Annotated[Mediator, Depends(mediator)],
 ) -> BaseResponse[None]:
     return await mediator.send(ProcessOrderCommand(model=model))
