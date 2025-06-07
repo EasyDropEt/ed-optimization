@@ -2,8 +2,10 @@ from typing import TypedDict
 
 
 class DbConfig(TypedDict):
-    connection_string: str
-    db_name: str
+    user: str
+    password: str
+    db: str
+    host: str
 
 
 class RabbitMQConfig(TypedDict):

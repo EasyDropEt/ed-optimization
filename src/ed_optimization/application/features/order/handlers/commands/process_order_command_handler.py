@@ -1,11 +1,10 @@
 from datetime import UTC, datetime, timedelta
 from math import asin, cos, radians, sin, sqrt
 
-from ed_domain.core.entities.delivery_job import WayPoint, WayPointType
-from ed_domain.core.repositories import ABCUnitOfWork
-from ed_domain.queues.common.abc_subscriber import ABCSubscriber
-from ed_domain.queues.ed_optimization.business_model import LocationModel
-from ed_domain.queues.ed_optimization.order_model import OrderModel
+from ed_core.application.features.business.dtos import (CreateLocationDto,
+                                                        CreateOrderDto)
+from ed_domain.core.aggregate_roots.waypoint import Waypoint, WaypointType
+from ed_domain.persistence.async_repositories import ABCAsyncUnitOfWork
 from rmediator.decorators import request_handler
 from rmediator.types import RequestHandler
 
@@ -15,6 +14,8 @@ from ed_optimization.application.contracts.infrastructure.api.abc_api import \
     ABCApi
 from ed_optimization.application.contracts.infrastructure.cache.abc_cache import \
     ABCCache
+from ed_optimization.application.contracts.infrastructure.message_queue.abc_rabbitmq_producers import \
+    ABCRabbitMQProducers
 from ed_optimization.application.features.order.requests.commands import \
     ProcessOrderCommand
 from ed_optimization.common.logging_helpers import get_logger
@@ -29,16 +30,16 @@ MAX_WAIT_TIME = timedelta(minutes=5)
 class ProcessOrderCommandHandler(RequestHandler):
     def __init__(
         self,
-        uow: ABCUnitOfWork,
-        subscriber: ABCSubscriber[OrderModel],
-        cache: ABCCache[list[OrderModel]],
+        uow: ABCAsyncUnitOfWork,
+        rabbitmq: ABCRabbitMQProducers,
+        cache: ABCCache[list[CreateOrderDto]],
         api: ABCApi,
     ):
         self._cache_key = "pending_delivery_job"
         self._uow = uow
         self._cache = cache
         self._api = api
-        subscriber.add_callback_function(self._process_order)
+        self._rabbitmq = rabbitmq
 
     async def handle(self, request: ProcessOrderCommand) -> BaseResponse[None]:
         self._process_order(request.model)
@@ -47,7 +48,7 @@ class ProcessOrderCommandHandler(RequestHandler):
             data=None,
         )
 
-    def _process_order(self, message: OrderModel) -> None:
+    def _process_order(self, message: CreateOrderDto) -> None:
         LOG.info(f"Received message: {message}")
         pending_orders = self._get_pending_orders()
 
@@ -78,7 +79,9 @@ class ProcessOrderCommandHandler(RequestHandler):
         else:
             self._save_pending_orders(pending_orders)
 
-    def _is_match(self, order: OrderModel, pending_orders: list[OrderModel]) -> bool:
+    def _is_match(
+        self, order: CreateOrderDto, pending_orders: list[CreateOrderDto]
+    ) -> bool:
         # Match if within time and distance threshold
         for existing in pending_orders:
             time_delta = abs(
@@ -99,7 +102,7 @@ class ProcessOrderCommandHandler(RequestHandler):
                 return False
         return True
 
-    def _flush_pending_orders(self, orders: list[OrderModel]) -> None:
+    def _flush_pending_orders(self, orders: list[CreateOrderDto]) -> None:
         LOG.info(f"Flushing {len(orders)} orders into a DeliveryJob.")
 
         waypoints = self._optimize_waypoints(
@@ -112,8 +115,8 @@ class ProcessOrderCommandHandler(RequestHandler):
                 }
                 for order in orders
                 for waypoint_type, sequence in [
-                    (WayPointType.PICKUP, 0),
-                    (WayPointType.DROP_OFF, 1),
+                    (WaypointType.PICKUP, 0),
+                    (WaypointType.DROP_OFF, 1),
                 ]
             ]
         )
@@ -135,16 +138,18 @@ class ProcessOrderCommandHandler(RequestHandler):
             self._cache.set(self._cache_key, [])  # clear cache
             LOG.info("Delivery job created and persisted (stub).")
 
-    def _get_pending_orders(self) -> list[OrderModel]:
+    def _get_pending_orders(self) -> list[CreateOrderDto]:
         if pending := self._cache.get(self._cache_key):
             return pending
         return []
 
-    def _save_pending_orders(self, orders: list[OrderModel]) -> None:
+    def _save_pending_orders(self, orders: list[CreateOrderDto]) -> None:
         self._cache.set(self._cache_key, orders)
         LOG.info(f"Saved {len(orders)} orders to pending cache.")
 
-    def _haversine_distance_km(self, loc1: LocationModel, loc2: LocationModel) -> float:
+    def _haversine_distance_km(
+        self, loc1: CreateLocationDto, loc2: CreateLocationDto
+    ) -> float:
         lat1, lon1 = loc1["latitude"], loc1["longitude"]
         lat2, lon2 = loc2["latitude"], loc2["longitude"]
         lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
@@ -156,6 +161,6 @@ class ProcessOrderCommandHandler(RequestHandler):
         c = 2 * asin(sqrt(a))
         return c * RADIUS_OF_EARTH_KM
 
-    def _optimize_waypoints(self, waypoints: list[WayPoint]) -> list[WayPoint]:
+    def _optimize_waypoints(self, waypoints: list[Waypoint]) -> list[Waypoint]:
         # Placeholder for actual optimization logic
         return waypoints

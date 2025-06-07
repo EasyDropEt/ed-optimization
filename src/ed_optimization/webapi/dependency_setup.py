@@ -1,10 +1,8 @@
 from typing import Annotated
 
-from ed_domain.core.repositories.abc_unit_of_work import ABCUnitOfWork
-from ed_domain.queues.common.abc_producer import ABCProducer
-from ed_infrastructure.persistence.mongo_db.db_client import DbClient
-from ed_infrastructure.persistence.mongo_db.unit_of_work import UnitOfWork
-from ed_infrastructure.queues.rabbitmq.producer import RabbitMQProducer
+from ed_domain.persistence.async_repositories.abc_async_unit_of_work import \
+    ABCAsyncUnitOfWork
+from ed_infrastructure.persistence.sqlalchemy.unit_of_work import UnitOfWork
 from fastapi import Depends
 from rmediator.mediator import Mediator
 
@@ -12,48 +10,43 @@ from ed_optimization.application.contracts.infrastructure.api.abc_api import \
     ABCApi
 from ed_optimization.application.contracts.infrastructure.cache.abc_cache import \
     ABCCache
+from ed_optimization.application.contracts.infrastructure.message_queue.abc_rabbitmq_producers import \
+    ABCRabbitMQProducers
 from ed_optimization.application.features.order.handlers.commands.process_order_command_handler import \
     ProcessOrderCommandHandler
 from ed_optimization.application.features.order.requests.commands.process_order_command import \
     ProcessOrderCommand
 from ed_optimization.common.generic_helpers import get_config
-from ed_optimization.common.typing.config import Config, TestMessage
+from ed_optimization.common.typing.config import Config
 from ed_optimization.infrastructure.api.api_handler import ApiHandler
 from ed_optimization.infrastructure.cache.in_memory_cache import InMemoryCache
-
-
-def get_db_client(config: Annotated[Config, Depends(get_config)]) -> DbClient:
-    return DbClient(
-        config["db"]["connection_string"],
-        config["db"]["db_name"],
-    )
+from ed_optimization.infrastructure.message_queue.rabbitmq_producers import \
+    RabbitMQProducers
 
 
 def get_cache() -> ABCCache:
     return InMemoryCache()
 
 
-def get_uow(db_client: Annotated[DbClient, Depends(get_db_client)]) -> ABCUnitOfWork:
-    return UnitOfWork(db_client)
-
-
-def get_producer(config: Annotated[Config, Depends(get_config)]) -> ABCProducer:
-    producer = RabbitMQProducer[TestMessage](
-        config["rabbitmq"]["url"],
-        config["rabbitmq"]["queue"],
-    )
-    producer.start()
-
-    return producer
+def get_uow(config: Annotated[Config, Depends(get_config)]) -> ABCAsyncUnitOfWork:
+    return UnitOfWork(config["db"])
 
 
 def get_api(config: Annotated[Config, Depends(get_config)]) -> ABCApi:
     return ApiHandler(config["core_api"])
 
 
+def get_rabbitmq_producers(
+    config: Annotated[Config, Depends(get_config)],
+) -> ABCRabbitMQProducers:
+    return RabbitMQProducers(config)
+
+
 def mediator(
-    uow: Annotated[ABCUnitOfWork, Depends(get_uow)],
-    producer: Annotated[ABCProducer, Depends(get_producer)],
+    rabbitmq_producers: Annotated[
+        ABCRabbitMQProducers, Depends(get_rabbitmq_producers)
+    ],
+    uow: Annotated[ABCAsyncUnitOfWork, Depends(get_uow)],
     cache: Annotated[ABCCache, Depends(get_cache)],
     api: Annotated[ABCApi, Depends(get_api)],
 ) -> Mediator:
@@ -62,7 +55,7 @@ def mediator(
     handlers = [
         (
             ProcessOrderCommand,
-            ProcessOrderCommandHandler(uow, producer, cache, api),
+            ProcessOrderCommandHandler(uow, rabbitmq_producers, cache, api),
         )
     ]
     for command, handler in handlers:
