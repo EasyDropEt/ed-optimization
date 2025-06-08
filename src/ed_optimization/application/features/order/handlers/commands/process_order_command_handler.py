@@ -13,8 +13,6 @@ from ed_optimization.application.contracts.infrastructure.api.abc_api import \
     ABCApi
 from ed_optimization.application.contracts.infrastructure.cache.abc_cache import \
     ABCCache
-from ed_optimization.application.contracts.infrastructure.message_queue.abc_rabbitmq_producers import \
-    ABCRabbitMQProducers
 from ed_optimization.application.features.order.dtos import (CreateLocationDto,
                                                              CreateOrderDto)
 from ed_optimization.application.features.order.requests.commands import \
@@ -32,7 +30,6 @@ class ProcessOrderCommandHandler(RequestHandler):
     def __init__(
         self,
         uow: ABCAsyncUnitOfWork,
-        rabbitmq: ABCRabbitMQProducers,
         cache: ABCCache[list[Order]],
         api: ABCApi,
     ):
@@ -40,7 +37,6 @@ class ProcessOrderCommandHandler(RequestHandler):
         self._uow = uow
         self._cache = cache
         self._api = api
-        self._rabbitmq = rabbitmq
 
     async def handle(self, request: ProcessOrderCommand) -> BaseResponse[None]:
         # self._process_order(request.model)

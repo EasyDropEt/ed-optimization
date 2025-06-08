@@ -43,9 +43,6 @@ def get_rabbitmq_producers(
 
 
 def mediator(
-    rabbitmq_producers: Annotated[
-        ABCRabbitMQProducers, Depends(get_rabbitmq_producers)
-    ],
     uow: Annotated[ABCAsyncUnitOfWork, Depends(get_uow)],
     cache: Annotated[ABCCache, Depends(get_cache)],
     api: Annotated[ABCApi, Depends(get_api)],
