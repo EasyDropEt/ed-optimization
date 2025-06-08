@@ -1,19 +1,18 @@
 from typing import TypeVar
 
-from ed_domain.queues.ed_optimization.order_model import OrderModel
-
 from ed_optimization.application.contracts.infrastructure.cache.abc_cache import \
     ABCCache
+from ed_optimization.application.features.order.dtos import CreateOrderDto
 
 T = TypeVar("T")
 
 
-class InMemoryCache(ABCCache[list[OrderModel]]):
+class InMemoryCache(ABCCache[list[CreateOrderDto]]):
     def __init__(self) -> None:
-        self._cache: dict[str, list[OrderModel]] = {}
+        self._cache: dict[str, list[CreateOrderDto]] = {}
 
-    def get(self, key: str) -> list[OrderModel] | None:
+    def get(self, key: str) -> list[CreateOrderDto] | None:
         return self._cache.get(key)
 
-    def set(self, key: str, value: list[OrderModel]) -> None:
+    def set(self, key: str, value: list[CreateOrderDto]) -> None:
         self._cache[key] = value

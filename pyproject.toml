@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ed-optimization"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
 authors = ["ffekirnew <ffekirnew0808@gmail.com>"]
 license = "MIT"
@@ -20,11 +20,12 @@ jsons = "^1.6.3"
 ed-domain = "^0.3.50"
 ed-infrastructure = "^0.3.20"
 asyncio = "^3.4.3"
-ed-core = "^0.2.27"
+ed-core = "^0.2.31"
 requests = "^2.32.3"
 twine = "^6.1.0"
 faststream = {extras = ["rabbit"], version = "^0.5.42"}
 psycopg = "^3.2.9"
+aiohttp = "^3.12.11"
 
 
 [tool.poetry.group.test.dependencies]

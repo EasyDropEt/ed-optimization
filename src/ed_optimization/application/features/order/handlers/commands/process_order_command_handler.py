@@ -15,7 +15,8 @@ from ed_optimization.application.contracts.infrastructure.cache.abc_cache import
     ABCCache
 from ed_optimization.application.contracts.infrastructure.message_queue.abc_rabbitmq_producers import \
     ABCRabbitMQProducers
-from ed_optimization.application.features.order.dtos import CreateOrderDto
+from ed_optimization.application.features.order.dtos import (CreateLocationDto,
+                                                             CreateOrderDto)
 from ed_optimization.application.features.order.requests.commands import \
     ProcessOrderCommand
 from ed_optimization.common.logging_helpers import get_logger
