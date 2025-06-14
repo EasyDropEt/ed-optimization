@@ -1,9 +1,5 @@
-from abc import ABCMeta, abstractmethod
-
-from ed_core.documentation.api.abc_core_api_client import ABCCoreApiClient
+from abc import ABCMeta
 
 
 class ABCApi(metaclass=ABCMeta):
-    @property
-    @abstractmethod
-    def core_api(self) -> ABCCoreApiClient: ...
+    ...

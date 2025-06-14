@@ -25,6 +25,7 @@ def get_config() -> Config:
             "queue": _get_env_variable("RABBITMQ_QUEUE"),
         },
         "core_api": _get_env_variable("CORE_API"),
+        "google_maps_api": _get_env_variable("GOOGLE_MAPS_API"),
     }
 
 
