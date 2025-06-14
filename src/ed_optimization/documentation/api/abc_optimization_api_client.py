@@ -8,10 +8,11 @@ from ed_optimization.application.features.order.dtos import (
 
 class ABCOptimizationApiClient(metaclass=ABCMeta):
     @abstractmethod
-    def create_order(
-        self, create_order_dto: CreateOrderDto) -> ApiResponse[None]: ...
+    async def create_order(
+        self, create_order_dto: CreateOrderDto
+    ) -> ApiResponse[None]: ...
 
     @abstractmethod
-    def calcualte_order_details(
+    async def calcualte_order_details(
         self, calculate_order_details_dto: CalculateOrderDetailsDto
     ) -> ApiResponse[RouteInformationDto]: ...
