@@ -11,21 +11,20 @@ python = "^3.12"
 pika = "^1.3.2"
 fastapi = {extras = ["standard"], version = "^0.115.5"}
 websockets = "^14.1"
-rmediator = "^0.2.3"
+rmediator = "^0.2.7"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.41"}
-psycopg2 = "^2.9.10"
 python-dotenv = "^1.0.1"
 pymongo = "^4.10.1"
 jsons = "^1.6.3"
-ed-domain = "^0.3.50"
-ed-infrastructure = "^0.3.20"
+ed-domain = "0.4.10"
+ed-infrastructure = "^0.3.31"
 asyncio = "^3.4.3"
-ed-core = "^0.2.31"
 requests = "^2.32.3"
 twine = "^6.1.0"
 faststream = {extras = ["rabbit"], version = "^0.5.42"}
 psycopg = "^3.2.9"
 aiohttp = "^3.12.11"
+ed-core = "^0.2.38"
 
 
 [tool.poetry.group.test.dependencies]
