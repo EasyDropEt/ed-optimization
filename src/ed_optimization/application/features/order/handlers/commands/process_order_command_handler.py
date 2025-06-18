@@ -122,9 +122,6 @@ class ProcessOrderCommandHandler(RequestHandler):
             order = await self._uow.order_repository.get(id=waypoint["order_id"])
             assert order is not None
 
-            order.update_status(OrderStatus.IN_PROGRESS)
-            await self._uow.order_repository.save(order)
-
             delivery_job.add_waypoint(created_waypoint)
 
         delivery_job.estimated_time_in_minutes = route_information["duration_seconds"]
