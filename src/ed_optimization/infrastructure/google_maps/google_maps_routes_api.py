@@ -65,6 +65,30 @@ class GoogleMapsRoutesAPI(ABCGoogleMapsRoutesAPI):
 
         return route_information
 
+    async def get_simple_route(
+        self,
+        origin_lat: float,
+        origin_lng: float,
+        destination_lat: float,
+        destination_lng: float,
+    ) -> RouteInformation:
+        optimized_route = await self._compute_routes(
+            self._format_location(origin_lat, origin_lng),
+            self._format_location(destination_lat, destination_lng),
+            [],
+        )
+        LOG.info(f"Got optimized route: {optimized_route}")
+        route = optimized_route["routes"][0]
+
+        route_information: RouteInformation = {
+            "duration_seconds": int(route["duration"][:-1])
+        }
+
+        if "distanceMeters" in route:
+            route_information["distance_meters"] = route["distanceMeters"]
+
+        return route_information
+
     async def get_route(
         self, origin: Location, destination: Location
     ) -> RouteInformation:
@@ -78,7 +102,6 @@ class GoogleMapsRoutesAPI(ABCGoogleMapsRoutesAPI):
 
         route_information: RouteInformation = {
             "duration_seconds": int(route["duration"][:-1]),
-            "waypoints": [origin, destination],
         }
 
         if "distanceMeters" in route:
@@ -145,17 +168,39 @@ class GoogleMapsRoutesAPI(ABCGoogleMapsRoutesAPI):
 
         return response
 
+    def _get_Maps_location(self, location: Location) -> GoogleMapsLocation:
+        return {
+            "location": {
+                "latLng": {
+                    "latitude": location.latitude,
+                    "longitude": location.longitude,
+                }
+            }
+        }
+
+    def _format_location(self, lat: float, lng: float) -> GoogleMapsLocation:
+        return {
+            "location": {
+                "latLng": {
+                    "latitude": lat,
+                    "longitude": lng,
+                }
+            }
+        }
+
     async def _send_request(self, url, headers, json) -> Any:
         try:
             response = await self.client.post(url, headers=headers, json=json)
             response.raise_for_status()  # Raise an exception for bad status codes
             return response.json()
         except httpx.HTTPStatusError as e:
-            print(
-                f"HTTP error occurred: {e.response.status_code} - {e.response.text}")
+            LOG.error(
+                f"HTTP error occurred: {e.response.status_code} - {e.response.text}"
+            )
             raise
         except httpx.RequestError as e:
-            print(f"An error occurred while requesting {e.request.url!r}: {e}")
+            LOG.error(
+                f"An error occurred while requesting {e.request.url!r}: {e}")
             raise
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

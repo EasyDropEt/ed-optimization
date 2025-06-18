@@ -1,63 +1,16 @@
-import logging
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
+from ed_domain.common.logging import get_logger
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
-LOG = logging.getLogger(__name__)
+from ed_optimization.application.services.optimization.vrp_solver_types import (
+    VRPOrder, VRPSolution, VRPVehicle)
 
-
-@dataclass
-class VRPLocation:
-    """Represents a location in the VRP problem."""
-
-    id: str
-    latitude: float
-    longitude: float
-    address: str
-
-
-@dataclass
-class VRPOrder:
-    """Represents an order in the VRP problem."""
-
-    id: str
-    pickup_location: VRPLocation
-    delivery_location: VRPLocation
-    pickup_time_window: Tuple[
-        int, int
-    ]  # (start_time, end_time) in minutes from start of day
-    delivery_time_window: Tuple[int, int]
-    demand: int  # weight or volume
-    priority: int = 1  # higher number = higher priority
-
-
-@dataclass
-class VRPVehicle:
-    """Represents a vehicle in the VRP problem."""
-
-    id: str
-    capacity: int
-    start_location: VRPLocation
-    # If None, same as start_location
-    end_location: Optional[VRPLocation] = None
-
-
-@dataclass
-class VRPSolution:
-    """Represents a solution to the VRP problem."""
-
-    # List of routes, each route is a list of location indices
-    routes: List[List[int]]
-    total_distance: float
-    total_time: int
-    vehicle_assignments: Dict[int, str]  # vehicle_index -> vehicle_id
+LOG = get_logger()
 
 
 class ORToolsVRPSolver:
-    """VRP Solver using Google OR-Tools."""
-
     def __init__(self):
         self.distance_matrix = None
         self.time_matrix = None
@@ -67,38 +20,42 @@ class ORToolsVRPSolver:
 
     def solve(
         self,
-        orders: List[VRPOrder],
-        vehicles: List[VRPVehicle],
+        orders: list[VRPOrder],
+        vehicles: list[VRPVehicle],
         distance_matrix: np.ndarray,
         time_matrix: Optional[np.ndarray] = None,
     ) -> Optional[VRPSolution]:
-        """
-        Solve the VRP problem.
-
-        Args:
-            orders: List of orders to be delivered
-            vehicles: List of available vehicles
-            distance_matrix: Matrix of distances between all locations
-            time_matrix: Matrix of travel times between all locations (optional)
-
-        Returns:
-            VRPSolution if a solution is found, None otherwise
-        """
         self.orders = orders
         self.vehicles = vehicles
         self.distance_matrix = distance_matrix
-        self.time_matrix = time_matrix if time_matrix is not None else distance_matrix
+        self.time_matrix = distance_matrix
+
+        LOG.info("ORDERS", orders)
+        LOG.info("VEHICLES", vehicles)
+        LOG.info("DISTANCE MATRIX", distance_matrix)
+        LOG.info("TIME MATRIX", time_matrix)
 
         # Build locations list: depot + pickup locations + delivery locations
         self._build_locations()
 
         # Create the routing index manager
         manager = pywrapcp.RoutingIndexManager(
-            len(self.locations), len(self.vehicles), self._get_depot_indices()
+            len(self.locations),
+            len(self.vehicles),
+            list(range(len(self.vehicles))),
+            list(range(len(self.vehicles))),
         )
 
         # Create Routing Model
         routing = pywrapcp.RoutingModel(manager)
+
+        def time_callback(from_index, to_index):
+            from_node = manager.IndexToNode(from_index)
+            to_node = manager.IndexToNode(to_index)
+            return self.time_matrix[from_node][to_node]
+
+        transit_callback_index = routing.RegisterTransitCallback(time_callback)
+        routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
         # Create and register distance callback
         def distance_callback(from_index, to_index):
@@ -160,11 +117,6 @@ class ORToolsVRPSolver:
             self.locations.append(order.pickup_location)
             self.locations.append(order.delivery_location)
 
-    def _get_depot_indices(self) -> List[int]:
-        """Get the indices of depot locations."""
-        # For simplicity, assume all vehicles start from the same depot (index 0)
-        return [0] * len(self.vehicles)
-
     def _add_capacity_constraint(self, routing, manager):
         """Add vehicle capacity constraints."""
 
@@ -225,6 +177,7 @@ class ORToolsVRPSolver:
                 order_idx, is_pickup = self._get_order_info_for_location(
                     location_idx)
                 if order_idx is not None:
+                    LOG.info("ORDER_IDX", order_idx)
                     order = self.orders[order_idx]
                     time_window = (
                         order.pickup_time_window
@@ -253,7 +206,7 @@ class ORToolsVRPSolver:
 
     def _get_order_info_for_location(
         self, location_idx: int
-    ) -> Tuple[Optional[int], bool]:
+    ) -> tuple[Optional[int], bool]:
         """Get order index and whether location is pickup for a given location index."""
         if location_idx == 0:  # Depot
             return None, False

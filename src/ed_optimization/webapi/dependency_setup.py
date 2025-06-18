@@ -55,7 +55,7 @@ def mediator(
     handlers = [
         (
             ProcessOrderCommand,
-            ProcessOrderCommandHandler(uow, cache, google_maps_api),
+            ProcessOrderCommandHandler(uow, google_maps_api),
         ),
         (
             CalculateOrderDetailsCommand,

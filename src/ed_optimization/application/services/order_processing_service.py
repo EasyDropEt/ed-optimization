@@ -227,10 +227,6 @@ class OrderProcessingService:
     async def _get_Maps_travel_info(
         self, origin_loc: Location, destination_loc: Location
     ) -> dict | None:
-        """
-        CONCEPTUAL: Fetches travel distance and duration from Google Maps Distance Matrix API.
-        Implement with `aiohttp` or an async Google Maps client here.
-        """
         LOG.debug(
             f"Calling Google Maps Distance Matrix for {origin_loc} to {destination_loc}"
         )

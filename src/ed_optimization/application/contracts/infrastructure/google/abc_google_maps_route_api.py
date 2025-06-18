@@ -16,6 +16,15 @@ class ABCGoogleMapsRoutesAPI(ABC):
     ) -> Optional[OptimizedRouteInformation]: ...
 
     @abstractmethod
+    async def get_simple_route(
+        self,
+        origin_lat: float,
+        origin_lng: float,
+        destination_lat: float,
+        destination_lng: float,
+    ) -> RouteInformation: ...
+
+    @abstractmethod
     async def get_route(
         self, origin: Location, destination: Location
     ) -> RouteInformation: ...

@@ -20,10 +20,9 @@ router = APIRouter(prefix="/orders", tags=["Order Feature"])
 @router.post("", response_model=GenericResponse[None])
 @rest_endpoint
 async def create_order(
-    dto: CreateOrderDto,
     mediator: Annotated[Mediator, Depends(mediator)],
 ) -> BaseResponse[None]:
-    return await mediator.send(ProcessOrderCommand(dto))
+    return await mediator.send(ProcessOrderCommand())
 
 
 @router.post("/calculate", response_model=GenericResponse[RouteInformationDto])

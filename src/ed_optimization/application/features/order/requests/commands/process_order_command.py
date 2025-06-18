@@ -12,4 +12,4 @@ from ed_optimization.application.features.order.dtos.create_order_dto import \
 @request(BaseResponse[None])
 @dataclass
 class ProcessOrderCommand(Request):
-    model: CreateOrderDto
+    ...

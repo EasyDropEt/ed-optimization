@@ -6,6 +6,11 @@ from ed_domain.core.aggregate_roots import Location
 from ed_domain.core.entities.waypoint import WaypointType
 
 
+class SimpleLocation(TypedDict):
+    lat: float
+    lng: float
+
+
 class RawWaypoint(TypedDict):
     order_id: UUID
     expected_arrival_time: datetime
@@ -45,4 +50,3 @@ class OptimizedRouteInformation(TypedDict):
 class RouteInformation(TypedDict):
     distance_meters: NotRequired[float]
     duration_seconds: int
-    waypoints: list[Location]
