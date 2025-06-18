@@ -52,8 +52,6 @@ class ProcessOrderCommandHandler(RequestHandler):
         self._google_maps_api = google_maps_api
 
     async def handle(self, request: ProcessOrderCommand) -> BaseResponse[None]:
-        LOG.info(
-            f"Handler received command for order ID: {request.model['id']}")
         async with self._uow.transaction():
             orders = await self._uow.order_repository.get_all(
                 order_status=OrderStatus.PENDING
@@ -116,7 +114,7 @@ class ProcessOrderCommandHandler(RequestHandler):
                     order_id=waypoint["order_id"],
                     expected_arrival_time=datetime.now(UTC),
                     sequence=idx,
-                    waypoint_type=waypoint["type"],
+                    waypoint_type=waypoint["type"],  # type: ignore
                     waypoint_status=WaypointStatus.PENDING,
                 )
             )
