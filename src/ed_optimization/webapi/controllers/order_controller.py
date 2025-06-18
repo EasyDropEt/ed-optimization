@@ -5,7 +5,7 @@ from rmediator.mediator import Mediator
 from ed_optimization.application.common.responses.base_response import \
     BaseResponse
 from ed_optimization.application.features.order.dtos import (
-    CalculateOrderDetailsDto, CreateOrderDto, RouteInformationDto)
+    CalculateOrderDetailsDto, RouteInformationDto)
 from ed_optimization.application.features.order.requests.commands import (
     CalculateOrderDetailsCommand, ProcessOrderCommand)
 from ed_optimization.common.logging_helpers import get_logger
