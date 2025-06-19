@@ -18,6 +18,7 @@ class Config(TypedDict):
     rabbitmq: RabbitMQConfig
     core_api: str
     google_maps_api: str
+    max_batch_size: int
 
 
 class TestMessage(TypedDict):

@@ -26,6 +26,7 @@ def get_config() -> Config:
         },
         "core_api": _get_env_variable("CORE_API"),
         "google_maps_api": _get_env_variable("GOOGLE_MAPS_API"),
+        "max_batch_size": int(_get_env_variable("MAX_BATCH_SIZE")),
     }
 
 

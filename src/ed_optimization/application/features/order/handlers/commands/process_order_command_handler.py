@@ -13,8 +13,6 @@ from rmediator.types import RequestHandler
 
 from ed_optimization.application.common.responses.base_response import \
     BaseResponse
-from ed_optimization.application.contracts.infrastructure.api.abc_api import \
-    ABCApi
 from ed_optimization.application.contracts.infrastructure.google.abc_google_maps_route_api import \
     ABCGoogleMapsRoutesAPI
 from ed_optimization.application.features.order.requests.commands import \
@@ -26,22 +24,23 @@ from ed_optimization.application.services.optimization.order_processing_service 
 from ed_optimization.application.services.waypoint_service import (
     CreateWaypointModel, WaypointService)
 from ed_optimization.common.logging_helpers import get_logger
+from ed_optimization.common.typing.config import Config
 
 LOG = get_logger()
-
-MAX_BATCH_SIZE = 2
 
 
 @request_handler(ProcessOrderCommand, BaseResponse[None])
 class ProcessOrderCommandHandler(RequestHandler):
     def __init__(
         self,
+        config: Config,
         uow: ABCAsyncUnitOfWork,
         google_maps_api: ABCGoogleMapsRoutesAPI,
     ):
         self._uow = uow
         self._order_processing_service = OrderProcessingService(
             uow, google_maps_api)
+        self._max_batch_size = config["max_batch_size"]
 
         self._business_service = BusinessService(uow)
         self._consumer_service = ConsumerService(uow)
@@ -57,7 +56,7 @@ class ProcessOrderCommandHandler(RequestHandler):
                 order_status=OrderStatus.PENDING
             )
 
-            if len(orders) >= MAX_BATCH_SIZE:
+            if len(orders) >= self._max_batch_size:
                 delivery_job = await self._flush_pending_orders(orders)
 
                 LOG.info(delivery_job)

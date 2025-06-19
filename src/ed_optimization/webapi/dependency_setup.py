@@ -46,16 +46,16 @@ def get_rabbitmq_producers(
 
 
 def mediator(
+    config: Annotated[Config, Depends(get_config)],
     google_maps_api: Annotated[ABCGoogleMapsRoutesAPI, Depends(get_google_maps_api)],
     uow: Annotated[ABCAsyncUnitOfWork, Depends(get_uow)],
-    cache: Annotated[ABCCache, Depends(get_cache)],
 ) -> Mediator:
     mediator = Mediator()
 
     handlers = [
         (
             ProcessOrderCommand,
-            ProcessOrderCommandHandler(uow, google_maps_api),
+            ProcessOrderCommandHandler(config, uow, google_maps_api),
         ),
         (
             CalculateOrderDetailsCommand,
