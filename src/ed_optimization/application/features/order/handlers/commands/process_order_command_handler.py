@@ -1,4 +1,4 @@
-from datetime import UTC
+from datetime import UTC, timedelta
 
 from ed_core.application.services.business_service import (BusinessService,
                                                            LocationService)
@@ -103,7 +103,9 @@ class ProcessOrderCommandHandler(RequestHandler):
         )
         assert route_information is not None
 
-        print("ROUTE INFORMATION", route_information)
+        time_for_waypoint = route_information["duration_seconds"] / len(
+            route_information["waypoints"]
+        )
 
         waypoints = route_information["waypoints"]
         for idx, waypoint in enumerate(waypoints):
@@ -120,6 +122,10 @@ class ProcessOrderCommandHandler(RequestHandler):
 
             order = await self._uow.order_repository.get(id=waypoint["order_id"])
             assert order is not None
+
+            order.expected_delivery_time = datetime.now(UTC) + timedelta(
+                time_for_waypoint * (idx + 1)
+            )
 
             if waypoint["type"] == WaypointType.PICK_UP:  # type: ignore
                 delivery_job.estimated_payment_in_birr += order.bill.amount_in_birr
