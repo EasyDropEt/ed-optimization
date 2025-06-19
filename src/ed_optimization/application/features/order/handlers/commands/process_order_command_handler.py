@@ -122,6 +122,8 @@ class ProcessOrderCommandHandler(RequestHandler):
             order = await self._uow.order_repository.get(id=waypoint["order_id"])
             assert order is not None
 
+            delivery_job.estimated_payment_in_birr += order.bill.amount_in_birr
+
             delivery_job.add_waypoint(created_waypoint)
 
         delivery_job.estimated_time_in_minutes = route_information["duration_seconds"]
