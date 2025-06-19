@@ -122,7 +122,8 @@ class ProcessOrderCommandHandler(RequestHandler):
             order = await self._uow.order_repository.get(id=waypoint["order_id"])
             assert order is not None
 
-            delivery_job.estimated_payment_in_birr += order.bill.amount_in_birr
+            if waypoint["type"] == WaypointType.PICK_UP:  # type: ignore
+                delivery_job.estimated_payment_in_birr += order.bill.amount_in_birr
 
             delivery_job.add_waypoint(created_waypoint)
 
