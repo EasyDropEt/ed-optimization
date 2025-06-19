@@ -5,8 +5,6 @@ from ed_domain.documentation.api.definitions import (EndpointDescription,
 
 from ed_optimization.application.features.order.dtos import (
     CalculateOrderDetailsDto, RouteInformationDto)
-from ed_optimization.application.features.order.dtos.create_order_dto import \
-    CreateOrderDto
 
 
 class OptimizationEndpointDescriptions(ABCEndpointDescriptions):
@@ -17,7 +15,6 @@ class OptimizationEndpointDescriptions(ABCEndpointDescriptions):
                 "name": "create_order",
                 "method": HttpMethod.POST,
                 "path": f"{self._base_url}/orders",
-                "request_model": CreateOrderDto,
             },
             {
                 "name": "calculate_order_details",

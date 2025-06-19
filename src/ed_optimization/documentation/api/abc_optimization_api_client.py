@@ -3,14 +3,12 @@ from abc import ABCMeta, abstractmethod
 from ed_domain.documentation.api.definitions import ApiResponse
 
 from ed_optimization.application.features.order.dtos import (
-    CalculateOrderDetailsDto, CreateOrderDto, RouteInformationDto)
+    CalculateOrderDetailsDto, RouteInformationDto)
 
 
 class ABCOptimizationApiClient(metaclass=ABCMeta):
     @abstractmethod
-    async def create_order(
-        self, create_order_dto: CreateOrderDto
-    ) -> ApiResponse[None]: ...
+    async def create_order(self) -> ApiResponse[None]: ...
 
     @abstractmethod
     async def calcualte_order_details(
